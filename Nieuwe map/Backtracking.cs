@@ -4,247 +4,164 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BackTracking
+namespace ConsoleApp2
 {
     class Program
     {
-        static int N;
-        static void Main(string[] args)
+        // N is used for size of Sudoku grid. Size will be NxN
+        int N = 9;
+
+        /* Takes a partially filled-in grid and attempts to assign values to
+          all unassigned locations in such a way to meet the requirements
+          for Sudoku solution (non-duplication across rows, columns, and boxes) */
+        static bool SolveSudoku(int[][] grid, int N)
         {
+            int[] position;
+            // If there is no unassigned location, we are done
+            position = FindUnassignedLocation(grid, N);
+            if (position[0]==-1)
+                return true; // success!
+            int row = position[0];
+            int col = position[1];
+            // consider digits 1 to N
+            for (int num = 1; num <= N; num++)
+            {
+                // if looks promising
+                if (isSafe(grid,N, row, col, num))
+                {
+                    // make tentative assignment
+                    grid[row][col] = num;
+
+                    // return, if success, yay!
+                    if (SolveSudoku(grid,N))
+                        return true;
+
+                    // failure, unmake & try again
+                    grid[row][col] = 0;
+                }
+            }
+            return false; // this triggers backtracking
+        }
+
+        /* Searches the grid to find an entry that is still unassigned. If
+           found, the reference parameters row, col will be set the location
+           that is unassigned, and true is returned. If no unassigned entries
+           remain, false is returned. */
+        static int[] FindUnassignedLocation(int[][] grid, int N)
+        {
+            int[] point=new int[2];
+            point[0] = -1;
+            point[1] = -1;
+            for (int row = 0; row < N; row++)
+                for (int col = 0; col < N; col++)
+                    if (grid[row][col] == 0)
+                    {
+                        point[0] = row;
+                        point[1] = col;
+                        return point;
+                    }      
+            return point;
+        }
+
+        /* Returns a boolean which indicates whether any assigned entry
+           in the specified row matches the given number. */
+        static bool UsedInRow(int[][] grid, int N, int row, int num)
+        {
+            for (int col = 0; col < N; col++)
+                if (grid[row][col] == num)
+                    return true;
+            return false;
+        }
+
+        /* Returns a boolean which indicates whether any assigned entry
+           in the specified column matches the given number. */
+        static bool UsedInCol(int[][] grid, int N, int col, int num)
+        {
+            for (int row = 0; row < N; row++)
+                if (grid[row][col] == num)
+                    return true;
+            return false;
+        }
+
+        /* Returns a boolean which indicates whether any assigned entry
+           within the specified 3x3 box matches the given number. */
+        static bool UsedInBox(int[][] grid, int boxSize,int boxStartRow, int boxStartCol, int num)
+        {
+            
+            for (int row = 0; row < boxSize; row++)
+                for (int col = 0; col < boxSize; col++)
+                    if (grid[row + boxStartRow][col + boxStartCol] == num)
+                        return true;
+            return false;
+        }
+
+        /* Returns a boolean which indicates whether it will be legal to assign
+           num to the given row,col location. */
+        static bool isSafe(int[][] grid,int N, int row, int col, int num)
+        {
+            /* Check if 'num' is not already placed in current row,
+               current column and current NxN box */
+            int boxSize = Convert.ToInt32(Math.Sqrt(N));
+            return !UsedInRow(grid,N, row, num) &&
+                   !UsedInCol(grid,N, col, num) &&
+                   !UsedInBox(grid,boxSize, row - row % boxSize, col - col % boxSize, num);
+        }
+
+        /* A utility function to print grid  */
+        static void printGrid(int[][] grid,int N)
+        {
+            for (int row = 0; row < N; row++)
+            {
+                for (int col = 0; col < N; col++)
+                {
+                    Console.Write(grid[row][col].ToString() + ' ');
+                }
+                Console.WriteLine();
+            }
+            Console.ReadLine();
+        }
+        static int[][] readGrid()
+        {
+            int N;
             string line = Console.ReadLine();
             string[] seperated = line.Split(' ');
             N = seperated.Count(); // een sudoku van N x N
-            int[,] puzzle = new int[N, N];
+            int[][] puzzle = new int[N][];
             int number;
-            List <int> NotExpandNumbers = new List<int>();
-
-            int maxSteps = N * N; // maximaal aantal stappen is van een N x N puzzel is een diepte van N x N
 
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
                 {
                     number = Convert.ToInt32(seperated[j]);
-                    puzzle[i, j] = number;
+                    puzzle[i][j] = number;
                 }
                 line = Console.ReadLine();
                 seperated = line.Split(' ');
             }
-            int[,] root = puzzle;
+            return puzzle;
+        }
+        static void Main(string[] args)
+        {
 
-            NotExpandNumbers = CheckNoUse(puzzle, 1, 0, NotExpandNumbers); // find numbers to not check for
-            // apply backtracking
-
-            // Write solution
-            for (int x = 0; x < N; x++)
+            int[][] grid = new int[][]
             {
-                for (int y = 0; y < N; y++)
-                {
-                    Console.Write(puzzle[x, y].ToString() + ' ');
-                }
-                Console.WriteLine();
-            }
-            Console.ReadLine();
-        }
-
-        public void BackTrack(int[,] puzzle)
-        {
-            if (Empty(puzzle)) // check empty
-                return;
-            else
-            {
-                Solve(puzzle);
-            }
-        }
-        public void Solve(int[,] puzzle)
-        {
-            if (full(puzzle)) // check full
-                return;
-            else
-            {
-
-            }
-        }
-
-        public static List<int> CheckNoUse(int[,] puzzle, int x, int y, List<int> numbers)
-        {
-            CheckLine(puzzle, x, numbers);
-            CheckColumn(puzzle, y, numbers);
-            CheckBlock(puzzle, x, y, numbers);
-            return numbers;
-        }
-        public static void CheckLine(int[,] puzzle, int x, List<int> numbers)
-        {
-            for (int i = 0; i < N; i++)
-            {
-                if (puzzle[x, i] != 0)
-                {
-                    numbers.Add(puzzle[x, i]);
-                }
-            }
-        }
-        public static void CheckColumn(int[,] puzzle, int y, List<int> numbers)
-        {
-            for (int i = 0; i < N; i++)
-            {
-                if (puzzle[i, y] != 0)
-                {
-                    numbers.Add(puzzle[i, y]);
-                }
-            }
-        }
-        public static void CheckBlock(int[,] puzzle, int x, int y, List<int> numbers)
-        {
-            int firstThird = ((int)Math.Sqrt(puzzle.Length) - 1) / 3;
-            int secondThird = ((int)Math.Sqrt(puzzle.Length) - 1) * 2 / 3;
-            int lastThird = puzzle.Length - 1;
-
-            if (0 <= x && x <= firstThird)   // first third of row
-            {
-                if (0 <= y && y <= firstThird)   // first third of column, block 1
-                {
-                    for (int i = 0; i <= firstThird; i++)
-                    {
-                        for (int j = 0; j <= firstThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-                else if (3 <= y && y <= 5)  // second third of collumn, block 2
-                {
-                    for (int i = firstThird; i <= secondThird; i++)
-                    {
-                        for (int j = 0; j <= firstThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-                else // block 3
-                {
-                    for (int i = secondThird; i <= lastThird; i++)
-                    {
-                        for (int j = 0; j <= firstThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-            }
-            else if (3 <= x && x <= 5) // second third of row
-            {
-                if (0 <= y && y <= 2)   // first third of column, block 4
-                {
-                    for (int i = 0; i <= firstThird; i++)
-                    {
-                        for (int j = firstThird; j <= secondThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-                else if (3 <= y && y <= 5)  // second third of collumn, block 5
-                {
-                    for (int i = firstThird; i <= secondThird; i++)
-                    {
-                        for (int j = firstThird; j <= secondThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-                else // block 6
-                {
-                    for (int i = secondThird; i <= lastThird; i++)
-                    {
-                        for (int j = firstThird; j <= secondThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (0 <= y && y <= 2)   // first third of column, block 7
-                {
-                    for (int i = 0; i <= firstThird; i++)
-                    {
-                        for (int j = secondThird; j <= lastThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-                else if (3 <= y && y <= 5)  // second third of collumn, block 8
-                {
-                    for (int i = firstThird; i <= secondThird; i++)
-                    {
-                        for (int j = secondThird; j <= lastThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-                else // block 9
-                {
-                    for (int i = secondThird; i <= lastThird; i++)
-                    {
-                        for (int j = secondThird; j <= lastThird; j++)
-                        {
-                            if (puzzle[i, j] != 0)
-                            {
-                                numbers.Add(puzzle[i, j]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        public bool Empty(int[,] puzzle)
-        {
-            foreach (int number in puzzle)
-            {
-                if (number != 0)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        public bool full(int[,] puzzle)
-        {
-            foreach (int number in puzzle)
-            {
-                if (number == 0)
-                    return false;
-            }
-            return true;
+                new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                new int[] {0, 0, 0, 0, 0, 3, 0, 8, 5},
+                new int[] {0, 0, 1, 0, 2, 0, 0, 0, 0},
+                new int[] { 0, 0, 0, 5, 0, 7, 0, 0, 0 },
+                new int[] {0, 0, 4, 0, 0, 0, 1, 0, 0},
+                new int[] { 0, 9, 0, 0, 0, 0, 0, 0, 0 },
+                new int[] { 0, 0, 0, 5, 0, 7, 0, 0, 0 },
+                new int[] { 5, 0, 0, 0, 0, 0, 0, 7, 3 },
+                new int[] { 0, 0, 2, 0, 1, 0, 0, 0, 0 }
+            };
+            int N = grid.Length;
+                
+    if (SolveSudoku(grid,N) == true)
+          printGrid(grid,N);
+    else
+         Console.WriteLine("No solution exists");
         }
     }
 }
