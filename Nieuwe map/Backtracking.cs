@@ -12,7 +12,7 @@ namespace ConsoleApp2
         /* Takes a partially filled-in grid and attempts to assign values to
           all unassigned locations in such a way to meet the requirements
           for Sudoku solution (non-duplication across rows, columns, and boxes) */
-        static bool SolveSudoku(int[,] grid, int N)
+        static bool SolveSudoku(int[,] grid, int N, int boxSize)
         {
             int[] position;
             // If there is no unassigned location, we are done
@@ -25,13 +25,13 @@ namespace ConsoleApp2
             for (int num = 1; num <= N; num++)
             {
                 // if looks promising
-                if (isSafe(grid,N, row, col, num))
+                if (isSafe(grid,N, boxSize, row, col, num))
                 {
                     // make tentative assignment
                     grid[row,col] = num;
 
                     // return, if success, yay!
-                    if (SolveSudoku(grid,N))
+                    if (SolveSudoku(grid,N, boxSize))
                         return true;
 
                     // failure, unmake & try again
@@ -95,14 +95,14 @@ namespace ConsoleApp2
 
         /* Returns a boolean which indicates whether it will be legal to assign
            num to the given row,col location. */
-        static bool isSafe(int[,] grid,int N, int row, int col, int num)
+        static bool isSafe(int[,] grid,int N, int boxSize, int row, int col, int num)
         {
             /* Check if 'num' is not already placed in current row,
                current column and current NxN box */
-            int boxSize = Convert.ToInt32(Math.Sqrt(N));
+            
             return !UsedInRow(grid,N, row, num) &&
                    !UsedInCol(grid,N, col, num) &&
-                   !UsedInBox(grid,boxSize, row - row % boxSize, col - col % boxSize, num);
+                   !UsedInBox(grid,boxSize, row - row % 3, col - col % 3, num);
         }
 
         /* A utility function to print grid  */
@@ -145,8 +145,9 @@ namespace ConsoleApp2
             //int[,] grid = {{0,0,0,0,0,0,0,0,0 },{0, 0, 0, 0, 0, 3, 0, 8, 5 }, { 0, 0, 1, 0, 2, 0, 0, 0, 0}, { 0, 0, 0, 5, 0, 7, 0, 0, 0 }, { 0, 0, 4, 0, 0, 0, 1, 0, 0 }, {0, 9, 0, 0, 0, 0, 0, 0, 0 }, { 5, 0, 0, 0, 0, 0, 0, 7, 3 }, {0, 0, 2, 0, 1, 0, 0, 0, 0 }, {0, 0, 0, 0, 4, 0, 0, 0, 9 } };
             int[,] grid = readGrid();
             int N = Convert.ToInt32(Math.Sqrt(grid.Length));
-            printGrid(grid, N);
-            if (SolveSudoku(grid,N) == true)
+            int boxSize = Convert.ToInt32(Math.Sqrt(N));
+            //printGrid(grid, N);
+            if (SolveSudoku(grid,N,boxSize) == true)
                   printGrid(grid,N);
             else
                  Console.WriteLine("No solution exists");
