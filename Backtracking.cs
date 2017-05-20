@@ -177,7 +177,6 @@ namespace ConsoleApp2
                 }
                 Console.WriteLine();
             }
-            Console.ReadLine();
         }
         static int[,] readGrid()
         {
@@ -230,14 +229,22 @@ namespace ConsoleApp2
             int N = (int)Math.Sqrt(grid.Length);
             int boxSize = Convert.ToInt32(Math.Sqrt(N));
             List<int[]> searchList = new List<int[]>();
+
             if (algorithm == "3")
             {
                 searchList = searchOrder(grid, N, boxSize);
             }
 
+            // Keep track of time
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
             if (SolveSudoku(grid, N, boxSize, algorithm, searchList) == true)
+            {
                 printGrid(grid, N);
+                watch.Stop();
+                var elapsedMs = watch.ElapsedMilliseconds;
+                Console.ReadLine();
+            }
             else
                 Console.WriteLine("No solution exists");
         }
