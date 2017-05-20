@@ -8,14 +8,18 @@ namespace ConsoleApp2
 {
     class Program
     {
+        static int recursiveSteps = 0;
         /* Takes a partially filled-in grid and attempts to assign values to
                 all unassigned locations in such a way to meet the requirements
                 for Sudoku solution (non-duplication across rows, columns, and boxes) */
         static bool SolveSudoku(int[,] grid, int N, int boxSize, string algorithm, List<int[]> searchOrder)
         {
-            int[] position;
-            // If there is no unassigned location, we are done
+            // keep track of the amount of recusrive steps
+            recursiveSteps++;
 
+            int[] position;            
+
+            // If there is no unassigned location, we are done
             position = FindUnassignedLocation(grid, N, algorithm, searchOrder);
             if (position[0] == -1)
                 return true; // success!
@@ -49,7 +53,6 @@ namespace ConsoleApp2
          remain, false is returned. */
         static int[] FindUnassignedLocation(int[,] grid, int N, string algorithm, List<int[]> searchOrder)
         {
-
             int[] point = new int[2];
             point[0] = -1;
             point[1] = -1;
@@ -202,7 +205,7 @@ namespace ConsoleApp2
         }
         static void Main(string[] args)
         {
-            string algorithm = "0";
+            string algorithm;
             do
             {
                 Console.WriteLine("choose 1, 2, or 3");
@@ -243,6 +246,8 @@ namespace ConsoleApp2
                 printGrid(grid, N);
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
+                Console.WriteLine("Elapsed time: " + elapsedMs/1000 + '.' + (elapsedMs - (elapsedMs / 1000)) + " seconds");
+                Console.WriteLine("Recursive steps: " + recursiveSteps);
                 Console.ReadLine();
             }
             else
