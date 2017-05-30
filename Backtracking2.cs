@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace ConsoleApp2
 {
+    // Elke stap ded listofarrays updaten, als er daarna een lege lijst ontstaat --> backtrack, expandeer de boom met de lijst die het minst lang is.
     class Program
     {
         static int recursiveSteps = 0;
