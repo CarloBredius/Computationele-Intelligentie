@@ -17,8 +17,8 @@ namespace ConsoleApp1
             // keep track of the amount of recursive steps
             recursiveSteps++;
 
-            int row, col;
-            //find smallest domain that doesn't contain 1 value
+            int row = 0, col = 0;
+            // find smallest domain that doesn't contain 1 value
             int smallest = N;
             int l = N;
             for (int x = 0; x < N; x++)
@@ -33,39 +33,37 @@ namespace ConsoleApp1
                     }
                 }
             // If there is none, we are done
-            return true; // success!
-                         //else get the position of this domain and the domain
+            if (smallest == 1)
+                return true; // success!
+
+            //else get the position of this domain and the domain
 
             //loop through domain
             foreach (int num in grid[row, col])
             {
-                List<int>[,] copy;
-                copy = grid;
+                List<int>[,] copy = grid;
+
                 // check if a domain collapses to zero 
-                if (updateDomains(grid, N, boxSize, row, col, num))
-                {
-                    // return, if success, yay!
-                    if (SolveSudoku(grid, N, boxSize))
-                        return true;
-                    // failure, unmake & try again
-                    grid = copy;
-                    //get back to the old copy
+                updateDomains(grid, N, boxSize, row, col, num);
 
-                }
-
+                // return, if success, yay!
+                if (SolveSudoku(grid, N, boxSize))
+                    return true;
+                // failure, unmake & try again
+                grid = copy;
+                //get back to the old copy
             }
             return false; // this triggers backtracking
         }
-
-
         /* Returns a boolean which indicates whether any assigned entry
          in the specified row matches the given number. */
         static bool notAllowedInRow(List<int>[,] grid, int N, int row, int num)
         {
             for (int col = 0; col < N; col++)
             {
-                if (grid[row, col] == new List<int> { num })
-                    return true;
+                if (grid[row, col].Count == 1)
+                    if (grid[row, col].Contains(num))
+                        return true;
                 grid[row, col].Remove(num);
             }
             return false;
@@ -97,17 +95,44 @@ namespace ConsoleApp1
             return false;
         }
 
-        static bool updateDomains(List<int>[,] grid, int N, int boxSize, int row, int col, int num)
+        static List<int>[,] updateDomains(List<int>[,] grid, int N, int boxSize, int row, int col, int num)
         {
-            /* Check if 'num' is not already placed in current row,
-        current column and current NxN box */
-            return !notAllowedInRow(grid, N, row, num) &&
-                   !notAllowedInCol(grid, N, col, num) &&
-                   !notAllowedInBox(grid, boxSize, row - row % boxSize, col - col % boxSize, num);
+            int[,] boolGrid = new int[N, N];
+            for (int i = 0; i < N; i++)
+            {
+                boolGrid[row, i] = 1;
+                boolGrid[i, col] = 1;
+            }
+            for (int i = 0; i < boxSize; i++)
+            {
+                for (int j = 0; j < boxSize; j++)
+                {
+                    boolGrid[i + row - row % boxSize, j + col - col % boxSize] = 1;
+                }
+            }
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    Console.Write(boolGrid[i, j] + " ");
+                }
+                Console.WriteLine();
+            }
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    if (boolGrid[i, j] == 1)
+                    {
+                        if (i == row && j == col) // TODO: Hier word de lijst van elke cel aangepast, dit moet alleen de lijst van de specifieke cel aanpassen
+                            grid[i, j] = new List<int> { num };
+                        else
+                            grid[i, j].Remove(num);
+                    }
+                }
+            }
+            return grid;
         }
-
-
-
         static void printGrid(int[,] grid, int N)
         {
             for (int row = 0; row < N; row++)
@@ -145,12 +170,11 @@ namespace ConsoleApp1
         static List<int>[,] gridToDomainGrid(int[,] grid, int N, int boxSize)
         {
             List<int>[,] domainGrid = new List<int>[N, N];
-            List<int> domain = Enumerable.Range(1, N).ToList();
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
                 {
-                    domainGrid[i, j] = domain;
+                    domainGrid[i, j] = Enumerable.Range(1, N).ToList();
                 }
             }
             for (int i = 0; i < N; i++)
@@ -159,10 +183,9 @@ namespace ConsoleApp1
                 {
                     if (grid[i, j] != 0)
                     {
+                        domainGrid = updateDomains(domainGrid, N, boxSize, i, j, grid[i, j]);
                         domainGrid[i, j] = new List<int> { grid[i, j] };
-                        updateDomains(domainGrid, N, boxSize, i, j, grid[i, j]);
                     }
-
                 }
             }
             return domainGrid;
