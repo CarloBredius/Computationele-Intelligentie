@@ -36,16 +36,11 @@ namespace ConsoleApp1
             if (smallest == 1)
                 return true; // success!
 
-            //else get the position of this domain and the domain
-
-            //loop through domain
+            //loop through this domain
             foreach (int num in grid[row, col])
             {
                 List<int>[,] copy = grid;
-
-                // check if a domain collapses to zero 
                 updateDomains(grid, N, boxSize, row, col, num);
-
                 // return, if success, yay!
                 if (SolveSudoku(grid, N, boxSize))
                     return true;
@@ -55,45 +50,7 @@ namespace ConsoleApp1
             }
             return false; // this triggers backtracking
         }
-        /* Returns a boolean which indicates whether any assigned entry
-         in the specified row matches the given number. */
-        static bool notAllowedInRow(List<int>[,] grid, int N, int row, int num)
-        {
-            for (int col = 0; col < N; col++)
-            {
-                if (grid[row, col].Count == 1)
-                    if (grid[row, col].Contains(num))
-                        return true;
-                grid[row, col].Remove(num);
-            }
-            return false;
-        }
-        /* Returns a boolean which indicates whether any assigned entry
-           in the specified column matches the given number. */
-        static bool notAllowedInCol(List<int>[,] grid, int N, int col, int num)
-        {
-            for (int row = 0; row < N; row++)
-            {
-                if (grid[row, col] == new List<int> { num })
-                    return true;
-                grid[row, col].Remove(num);
-            }
-            return false;
-        }
 
-        /* Returns a boolean which indicates whether any assigned entry
-           within the specified 3x3 box matches the given number. */
-        static bool notAllowedInBox(List<int>[,] grid, int boxSize, int boxStartRow, int boxStartCol, int num)
-        {
-            for (int row = 0; row < boxSize; row++)
-                for (int col = 0; col < boxSize; col++)
-                {
-                    if (grid[row + boxStartRow, col + boxStartCol] == new List<int> { num })
-                        return true;
-                    grid[row + boxStartRow, col + boxStartCol].Remove(num);
-                }
-            return false;
-        }
 
         static List<int>[,] updateDomains(List<int>[,] grid, int N, int boxSize, int row, int col, int num)
         {
@@ -110,14 +67,7 @@ namespace ConsoleApp1
                     boolGrid[i + row - row % boxSize, j + col - col % boxSize] = 1;
                 }
             }
-            for (int i = 0; i < N; i++)
-            {
-                for (int j = 0; j < N; j++)
-                {
-                    Console.Write(boolGrid[i, j] + " ");
-                }
-                Console.WriteLine();
-            }
+
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
@@ -184,12 +134,24 @@ namespace ConsoleApp1
                     if (grid[i, j] != 0)
                     {
                         domainGrid = updateDomains(domainGrid, N, boxSize, i, j, grid[i, j]);
-                        domainGrid[i, j] = new List<int> { grid[i, j] };
                     }
                 }
             }
             return domainGrid;
         }
+        static int[,] domainGridToGrid(List<int>[,] domainGrid, int N, int boxSize)
+        {
+            int[,] grid = new int[N, N];
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    grid[i, j] = domainGrid[i, j].First();
+                }
+            }
+            return grid;
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("enter a NxN sudoku with N lines of N numbers with white space between them");
@@ -210,7 +172,7 @@ namespace ConsoleApp1
 
             if (SolveSudoku(domainGrid, N, boxSize) == true)
             {
-                printGrid(grid, N);
+                printGrid(domainGridToGrid(domainGrid, N, boxSize), N);
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
                 Console.WriteLine("Elapsed time: " + elapsedMs / 1000 + '.' + (elapsedMs - (elapsedMs / 1000)) + " seconds");
