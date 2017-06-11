@@ -39,20 +39,33 @@ namespace ConsoleApp1
             //loop through this domain
             foreach (int num in grid[row, col])
             {
-                List<int>[,] copy = grid;
-                updateDomains(grid, N, boxSize, row, col, num);
+                List<int>[,] copy = copyGrid(grid, N);
+                if (!updateDomains(grid, N, boxSize, row, col, num))
+                {
+                    grid = copyGrid(copy, N);
+                    continue;
+                }
                 // return, if success, yay!
                 if (SolveSudoku(grid, N, boxSize))
                     return true;
                 // failure, unmake & try again
-                grid = copy;
+                grid = copyGrid(copy, N);
                 //get back to the old copy
             }
             return false; // this triggers backtracking
         }
 
-
-        static List<int>[,] updateDomains(List<int>[,] grid, int N, int boxSize, int row, int col, int num)
+        static List<int>[,] copyGrid(List<int>[,] grid, int N)
+        {
+            List<int>[,] result = new List<int>[N, N];
+            for (int x = 0; x < N; x++)
+                for (int y = 0; y < N; y++)
+                {
+                    result[x, y] = new List<int>(grid[x, y]);
+                }
+            return result;
+        }
+        static bool updateDomains(List<int>[,] grid, int N, int boxSize, int row, int col, int num)
         {
             int[,] boolGrid = new int[N, N];
             for (int i = 0; i < N; i++)
@@ -74,14 +87,15 @@ namespace ConsoleApp1
                 {
                     if (boolGrid[i, j] == 1)
                     {
-                        if (i == row && j == col) // TODO: Hier word de lijst van elke cel aangepast, dit moet alleen de lijst van de specifieke cel aanpassen
+                        if (i == row && j == col)
                             grid[i, j] = new List<int> { num };
                         else
                             grid[i, j].Remove(num);
+                        if (grid[i, j].Count() == 0) return false;
                     }
                 }
             }
-            return grid;
+            return true;
         }
         static void printGrid(int[,] grid, int N)
         {
@@ -133,7 +147,7 @@ namespace ConsoleApp1
                 {
                     if (grid[i, j] != 0)
                     {
-                        domainGrid = updateDomains(domainGrid, N, boxSize, i, j, grid[i, j]);
+                        updateDomains(domainGrid, N, boxSize, i, j, grid[i, j]);
                     }
                 }
             }
@@ -162,7 +176,7 @@ namespace ConsoleApp1
             int boxSize = Convert.ToInt32(Math.Sqrt(N));
 
             // Keep track of an NxN array of lists, containing the numbers possible at that position
-            List<int>[,] domainGrid = new List<int>[N, N];
+            List<int>[,] domainGrid;
             domainGrid = gridToDomainGrid(grid, N, boxSize);
 
 
