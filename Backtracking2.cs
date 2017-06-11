@@ -19,13 +19,13 @@ namespace ConsoleApp1
 
             int row = 0, col = 0;
             // find smallest domain that doesn't contain 1 value
-            int smallest = N;
+            int smallest = 1;
             int l = N;
             for (int x = 0; x < N; x++)
                 for (int y = 0; y < N; y++)
                 {
                     l = grid[x, y].Count;
-                    if (l < smallest && l > 1)
+                    if (l < smallest && l > 1 || l == 2)
                     {
                         smallest = l;
                         row = y;
@@ -35,11 +35,10 @@ namespace ConsoleApp1
             // If there is none, we are done
             if (smallest == 1)
                 return true; // success!
-
+            List<int>[,] copy = copyGrid(grid, N);
             //loop through this domain
             foreach (int num in grid[row, col])
             {
-                List<int>[,] copy = copyGrid(grid, N);
                 if (!updateDomains(grid, N, boxSize, row, col, num))
                 {
                     grid = copyGrid(copy, N);
