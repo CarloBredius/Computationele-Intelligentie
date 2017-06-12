@@ -41,8 +41,6 @@ namespace ConsoleApp1
             {
                 printGrid(domainGridToGrid(grid, N, boxSize), N);
                 return true; // success!
-
-
             }
             //we make a copy of the grid in order to fall back to a previous state if a node in the 
             //search tree can't lead to a solution
@@ -162,7 +160,6 @@ namespace ConsoleApp1
             }
             return puzzle;
         }
-
         //function to change a integer 2D array into a 2D array with lists of the domains
         static List<int>[,] gridToDomainGrid(int[,] grid, int N, int boxSize)
         {
@@ -199,7 +196,6 @@ namespace ConsoleApp1
             }
             return grid;
         }
-
         static void Main(string[] args)
         {
             Console.WriteLine("enter a NxN sudoku with N lines of N numbers with white space between them and with 0's representing unassigned positions");
@@ -212,9 +208,7 @@ namespace ConsoleApp1
             // Keep track of an NxN array of lists, containing the numbers possible at that position
             List<int>[,] domainGrid;
             domainGrid = gridToDomainGrid(grid, N, boxSize);
-
-
-
+            
             // Keep track of time
             var watch = System.Diagnostics.Stopwatch.StartNew();
             //solve the sudoku
@@ -222,12 +216,15 @@ namespace ConsoleApp1
             {
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
-                Console.WriteLine("Elapsed time: " + elapsedMs / 1000 + '.' + (elapsedMs - (elapsedMs / 1000)) + " seconds");
+                Console.WriteLine("Elapsed time: " + elapsedMs);
                 Console.WriteLine("Recursive steps: " + recursiveSteps);
                 Console.ReadLine();
             }
             else
+            {
                 Console.WriteLine("No solution exists");
+                Console.ReadLine();
+            }
         }
     }
 }

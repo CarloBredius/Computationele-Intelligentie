@@ -134,8 +134,7 @@ namespace ConsoleApp2
         {
             List<int[]> positions = new List<int[]>();
             List<int> heuristicValues = new List<int>();
-
-
+            
             for (int row = 0; row < N; row++)
             {
                 for (int col = 0; col < N; col++)
@@ -152,11 +151,7 @@ namespace ConsoleApp2
               .Zip(heuristicValues, (p, h) => new { positions = p, heuristicValues = h })
               .OrderBy(v => v.heuristicValues)
               .Select(v => v.positions)
-              .ToList();
-
-            //positionsWithHeuristicValue.OrderBy(item => item[0]);
-            //List<int[]> positions = new List<int[]>();
-            //foreach (int[] position in positionsWithHeuristicValue) { positions.Add(new int[2]{ position[1], position[2]}); }
+              .ToList();            
             return positions;
         }
 
@@ -235,12 +230,15 @@ namespace ConsoleApp2
                 printGrid(grid, N);
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
-                Console.WriteLine("Elapsed time: " + elapsedMs/1000 + '.' + (elapsedMs - (elapsedMs / 1000)) + " seconds");
+                Console.WriteLine("Elapsed time: " + elapsedMs);
                 Console.WriteLine("Recursive steps: " + recursiveSteps);
                 Console.ReadLine();
             }
             else
+            {
                 Console.WriteLine("No solution exists");
+                Console.ReadLine();
+            }
         }
     }
 }
