@@ -17,7 +17,7 @@ namespace ConsoleApp2
             // keep track of the amount of recusrive steps
             recursiveSteps++;
 
-            int[] position;            
+            int[] position;
 
             // If there is no unassigned location, we are done
             position = FindUnassignedLocation(grid, N, algorithm, searchOrder);
@@ -134,7 +134,7 @@ namespace ConsoleApp2
         {
             List<int[]> positions = new List<int[]>();
             List<int> heuristicValues = new List<int>();
-            
+
             for (int row = 0; row < N; row++)
             {
                 for (int col = 0; col < N; col++)
@@ -151,7 +151,7 @@ namespace ConsoleApp2
               .Zip(heuristicValues, (p, h) => new { positions = p, heuristicValues = h })
               .OrderBy(v => v.heuristicValues)
               .Select(v => v.positions)
-              .ToList();            
+              .ToList();
             return positions;
         }
 
