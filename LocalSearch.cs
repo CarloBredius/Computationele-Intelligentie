@@ -41,10 +41,27 @@ namespace ConsoleApp1
             }
             return puzzle;
         }
+
+        static int HeuristicValue(Pair[,] grid, int N)
+        {
+            int result = 0;
+            for (int i = 0; i < N; i++)
+            {
+                List<int> rowMissing = Enumerable.Range(1, N).ToList();
+                List<int> colMissing = Enumerable.Range(1, N).ToList();
+                for (int j = 0; j < N; j++)
+                {
+                    rowMissing.Remove(grid[i, j].Number);
+                    colMissing.Remove(grid[j, i].Number);
+                }
+                result += rowMissing.Count() + colMissing.Count();
+            }
+            return result;
+        }
         static Pair[,] fillGrid(int[,] grid)
         {
             int N = (int)Math.Sqrt(grid.Length);
-            Pair[,] filledGrid = new Pair[N,N];
+            Pair[,] filledGrid = new Pair[N, N];
             int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
             List<int>[,] taboe = new List<int>[boxSize, boxSize];
 
@@ -80,7 +97,7 @@ namespace ConsoleApp1
                         {
                             if (filledGrid[row, col].Fixed == false)
                             {
-                                if (taboe[i, j].Contains(counter))
+                                while (taboe[i, j].Contains(counter))
                                 {
                                     counter++;
                                 }
@@ -89,7 +106,7 @@ namespace ConsoleApp1
 
                             }
                         }
-            }
+                }
             return filledGrid;
         }
         static void Main(string[] args)
@@ -97,6 +114,7 @@ namespace ConsoleApp1
             int[,] grid = readGrid();
             Pair[,] filledGrid = fillGrid(grid);
             printGrid(filledGrid);
+            Console.WriteLine(HeuristicValue(filledGrid, 4));
             Console.ReadLine();
         }
         struct Pair
@@ -107,4 +125,3 @@ namespace ConsoleApp1
     }
 }
 
-    
