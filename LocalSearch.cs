@@ -58,6 +58,28 @@ namespace ConsoleApp1
             }
             return result;
         }
+
+        static List<int> BoxOrder(int N)
+        {
+            List<int> boxOrderList = new List<int>();
+
+            for (int i = 1; i < N + 1; i++)
+            {
+                boxOrderList.Add(i);
+            }
+
+            List<int> randomizedList = new List<int>();
+            Random r = new Random();
+            int randomIndex = 0;
+            while (boxOrderList.Count > 0)
+            {
+                randomIndex = r.Next(0, boxOrderList.Count);
+                randomizedList.Add(boxOrderList[randomIndex]);
+                boxOrderList.RemoveAt(randomIndex);
+            }
+            return randomizedList; //return the new random list
+        }
+
         static Pair[,] fillGrid(int[,] grid)
         {
             int N = (int)Math.Sqrt(grid.Length);
@@ -103,18 +125,49 @@ namespace ConsoleApp1
                                 }
                                 filledGrid[row, col].Number = counter;
                                 counter++;
-
                             }
                         }
                 }
             return filledGrid;
         }
+        static Pair[,] ChangeInBox(Pair[,] grid, int box, int boxSize)
+        {
+            int boxRow = box - 1;
+            int boxCol = ((box - 1) % boxSize ) * boxSize;
+
+            for (int row = 0; row < boxSize; row++)
+            {
+                for (int col = 0; col < boxSize; col++)
+                {
+                    //each number in this specific box
+                    Console.Write(grid[boxRow + row, boxCol + col].Number + " ");
+                }
+                Console.WriteLine();
+            }
+            return grid;
+        }
         static void Main(string[] args)
         {
             int[,] grid = readGrid();
+            int N = (int)Math.Sqrt(grid.Length);
             Pair[,] filledGrid = fillGrid(grid);
             printGrid(filledGrid);
-            Console.WriteLine(HeuristicValue(filledGrid, 4));
+
+
+            // maak een lijst van lengte sqrt(N) met random volgorde hoe we door de blokken gaan.
+            List<int> randomOrder = new List<int>();
+            int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
+
+            while (HeuristicValue(filledGrid, 4) != 0)
+            {
+                randomOrder = BoxOrder(N); // nieuwe random volgorde in welke box er geswapped word
+                foreach (var box in randomOrder)
+                {
+                    ChangeInBox(filledGrid, box, boxSize);
+                }
+            }
+
+            Console.WriteLine(HeuristicValue(filledGrid, 4)); // 4 aanpassen naar dynamisch getal
             Console.ReadLine();
         }
         struct Pair
