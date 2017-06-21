@@ -70,19 +70,12 @@ namespace ConsoleApp1
 
         static List<int> BoxOrder(int N)
         {
-            List<int> boxOrderList = new List<int>();
-
-            for (int i = 1; i < N + 1; i++)
-            {
-                boxOrderList.Add(i);
-            }
-
+            List<int> boxOrderList = Enumerable.Range(0, N).ToList();
             List<int> randomizedList = new List<int>();
             Random r = new Random();
-            int randomIndex = 0;
             while (boxOrderList.Count > 0)
             {
-                randomIndex = r.Next(0, boxOrderList.Count);
+                int randomIndex = r.Next(0, boxOrderList.Count);
                 randomizedList.Add(boxOrderList[randomIndex]);
                 boxOrderList.RemoveAt(randomIndex);
             }
@@ -139,133 +132,141 @@ namespace ConsoleApp1
                 }
             return filledGrid;
         }
-        static Pair[,] ChangeInBox(Pair[,] grid, int box, int boxSize, int currentHeuristicValue, int N)
+
+        static int randomWalk(Pair[,] grid, int box, int boxSize, int N)
         {
-            // list with heuristic value, and x, y of number 1 to be swapped with x, y of number 2
-            List<Tuple<int, Tuple<int, int>, Tuple<int, int>>> heuristicValues = new List<Tuple<int, Tuple<int, int>, Tuple<int, int>>>();
-
-            int boxRow = ((box - 1) / boxSize) * boxSize ;
-            int boxCol = ((box - 1) % boxSize ) * boxSize;
-            Pair[,] copyGrid = new Pair[N, N];
-            List<int> possibilies = new List<int>();
-
-            // iterate over each number in this specific box
-            for (int row = 0; row < boxSize; row++)
+            Random r = new Random();
+            int row1;
+            int col1;
+            do
             {
-                for (int col = 0; col < boxSize; col++)
-                {
-                    // check if its a number that can be swapped or not
-                    if (grid[boxRow + row, boxCol + col].Fixed)
-                        continue;
-                    else
-                    {
-                        possibilies.Add(grid[boxRow + row, boxCol + col].Number);
-                        ////try every swap with other non fixed numbers
-                        //int temp = grid[boxRow + row, boxCol + col].Number;
-
-                        //for (int rowLeftovers = 0; rowLeftovers < boxSize; rowLeftovers++)
-                        //    for (int colLeftovers = 0; colLeftovers < boxSize; colLeftovers++)
-                        //    {
-                        //        // check if other is fixed and if it is not the first (no swap with itself)
-                        //        if (!grid[boxRow + row + rowLeftovers, boxCol + col + colLeftovers].Fixed &&
-                        //            grid[boxRow + row + rowLeftovers, boxCol + col + colLeftovers].Number != temp)
-                        //        {
-                        //            // make a copy of the grid
-                        //            Array.Copy(grid, 0, copyGrid, 0, grid.Length);
-                        //            copyGrid[boxRow + row, boxCol + col].Number = copyGrid[boxRow + row + rowLeftovers, boxCol + col + colLeftovers].Number;
-                        //            copyGrid[boxRow + row + rowLeftovers, boxCol + col + colLeftovers].Number = temp; // swap with temp
-                        //            // add heuristic value to later check the best, change 4 to dynamic
-                        //            heuristicValues.Add(new Tuple<int, int, int>(HeuristicValue(copyGrid, 4), copyGrid[boxRow + row + rowLeftovers, boxCol + col + colLeftovers].Number, copyGrid[boxRow + row, boxCol + col].Number));
-                        //            //printGrid(copyGrid);
-                        //        }
-                        //        else
-                        //            continue;
-                        //    }
-                    }
-                }
+                int pos1 = r.Next(N);
+                int boxRow = box / boxSize;
+                int boxCol = box % boxSize;
+                row1 = boxRow * boxSize + pos1 / boxSize;
+                col1 = boxCol * boxSize + pos1 % boxSize;
             }
+            while (grid[row1, col1].Fixed == true);
 
-            // make list with every pair
-            List<Tuple<int, int>> combinations = (from item in possibilies
-                                from item2 in possibilies
-                                where item < item2
-                                select new Tuple<int, int>(item, item2)).ToList();
-
-            foreach (Tuple<int, int> pair in combinations) // every combination
+            int row2;
+            int col2;
+            do
             {
-                // make copy
-                Array.Copy(grid, 0, copyGrid, 0, grid.Length);
-                int item1X = 0; // never used as Item1 will always be found before Item2 (Item1 < Item2)
-                int item1Y = 0;
-                int item2X = 0;
-                int item2Y = 0;
-                for (int row = 0; row < boxSize; row++)
-                {
-                    for (int col = 0; col < boxSize; col++)
-                    {
-                        if(copyGrid[row, col].Number == pair.Item1)
-                        {
-                            item1X = row;
-                            item1Y = col;
-                        }
-                        if (copyGrid[row, col].Number == pair.Item2)
-                        { // swap
-                            item2X = row;
-                            item2Y = col;
-                            int temp = copyGrid[item1X, item1Y].Number;
-                            copyGrid[item1X, item1Y].Number = copyGrid[row, col].Number;
-                            copyGrid[row, col].Number = temp;
-                        }
-                    }
-                }
-                heuristicValues.Add(new Tuple<int, Tuple<int, int>, Tuple<int, int>>(HeuristicValue(copyGrid, 4), new Tuple<int, int>(item1X, item1Y), new Tuple<int, int>(item2X, item2Y))); // change 4 into dynamic number
+                int pos2 = r.Next(N);
+                int boxRow = box / boxSize;
+                int boxCol = box % boxSize;
+                row2 = boxRow * boxSize + pos2 / boxSize;
+                col2 = boxCol * boxSize + pos2 % boxSize;
             }
+            while (row2 == row1 && col2 == col1 || grid[row2, col2].Fixed == true);
 
-            if (heuristicValues.Min(c => c.Item1) < currentHeuristicValue)
-            {
-                int swapX = 0;
-                int swapY = 0;
+            //we have a swappeble match, calculate the heuristic Change of this swap:
+            int heuristicChange = swapHeuristic(grid, N, row1, col1, row2, col2);
 
-                for (int row = 0; row < boxSize; row++)
-                {
-                    for (int col = 0; col < boxSize; col++)
-                    {
-                        if (heuristicValues.Min(c => c.Item2.Item1) == row &&
-                            heuristicValues.Min(c => c.Item2.Item2) == col)
-                        {
-                            swapX = row;
-                            swapY = col;
-                        }
-                        if (heuristicValues.Min(c => c.Item3.Item1) == row &&
-                            heuristicValues.Min(c => c.Item3.Item2) == col)
-                        {
-                            int temp = copyGrid[swapX, swapY].Number;
-                            copyGrid[swapX, swapY].Number = copyGrid[row, col].Number;
-                            copyGrid[row, col].Number = temp;
-                        }
-                    }
-                }
-                return copyGrid;
-            }
-            else // no swaps in this box will get the algorithm closer to its solution
-            {
-                return grid;
-            }
+            //swap them                
+            int two = grid[row2, col2].Number;
+            grid[row2, col2].Number = grid[row1, col1].Number;
+            grid[row1, col1].Number = two;
+            //update heuristic value
+            return heuristicChange;
         }
-
-        private static bool MatchesFileMask(int item1)
+        /*function that perfoms a swap in the given box and alters the heuristicValue
+        if its the best heuristic swap in the box and if the total heuristic value of 
+        the grid lowers.Returns whether there was a swap or not.*/
+        static int hillClimb(Pair[,] grid, int box, int boxSize, int N)
         {
-            throw new NotImplementedException();
+            int boxRow = box / boxSize;
+            int boxCol = box % boxSize;
+            //store the best swap and its improvement. 
+            //(bestSwap contains the row and col of both positions, bestImprovement is the heuristic improvement of the swap (<=0)) 
+            int[] bestSwap = new int[4];
+            int bestImprovement = 0;
+            //iterate through the box
+            for (int i = 0; i < N; i++)
+            {
+                //get the absolute positions in the grid of the current cell
+                int row1 = boxRow * boxSize + i / boxSize;
+                int col1 = boxCol * boxSize + i % boxSize;
+                //check if this cell is not fixed
+                if (grid[row1, col1].Fixed == false)
+                {
+                    //iterate through the remaining cells in the box
+                    for (int j = i + 1; j < N; j++)
+                    {
+                        int row2 = boxRow * boxSize + j / boxSize;
+                        int col2 = boxCol * boxSize + j % boxSize;
+                        //check if this cell is not fixed
+                        if (grid[row2, col2].Fixed == false)
+                        {
+                            //we have a swappeble match, calculate the heuristicImprovement of this swap:
+                            int heuristicImprovement = swapHeuristic(grid, N, row1, col1, row2, col2);
+                            //if its the best swap so far, store the rate of improvement and the cells of the swap
+                            if (heuristicImprovement <= bestImprovement)
+                            {
+                                bestImprovement = heuristicImprovement;
+                                bestSwap = new int[] { row1, col1, row2, col2 };
+                            }
+                        }
+                    }
+                }
+            }
+            //we have checked every possible swap in the box. Now we can perform the best swap, 
+            //and change the heuristic value
+            int rowOne = bestSwap[0];
+            int colOne = bestSwap[1];
+            int rowTwo = bestSwap[2];
+            int colTwo = bestSwap[3];
+
+            int two = grid[rowTwo, colTwo].Number;
+            grid[rowTwo, colTwo].Number = grid[rowOne, colOne].Number;
+            grid[rowOne, colOne].Number = two;
+            return bestImprovement;
         }
-
-        static void swap (Pair[,] grid, int i, int j)
+        static int swapHeuristic(Pair[,] grid, int N, int row1, int col1, int row2, int col2)
         {
-            int temp = i;
-            i = j;
-            j = temp;
+            int result = 0;
+            //iterate 2 times, to calculate the heuristic value before and after the swap
+            for (int j = -1; j < 2; j += 2)
+            {
+                //in the second iteration, make the swap before calculating heuristic value
+                if (j == 1)
+                {
+                    int two2 = grid[row2, col2].Number;
+                    grid[row2, col2].Number = grid[row1, col1].Number;
+                    grid[row1, col1].Number = two2;
+                }
+                //calculate heuristic value of the two rows and two columns that are involved in the swap
+                List<int> row1Missing = Enumerable.Range(1, N).ToList();
+                List<int> col1Missing = Enumerable.Range(1, N).ToList();
+                List<int> row2Missing = Enumerable.Range(1, N).ToList();
+                List<int> col2Missing = Enumerable.Range(1, N).ToList();
+
+                for (int i = 0; i < N; i++)
+                {
+                    row1Missing.Remove(grid[row1, i].Number);
+                    col1Missing.Remove(grid[i, col1].Number);
+                    row2Missing.Remove(grid[row2, i].Number);
+                    col2Missing.Remove(grid[i, col2].Number);
+                }
+                //the result is negative if the number of missing numbers decreases, which is good, 
+                //       and is positive if the number of missing numbers increases, which is bad.
+                //(remember that j is -1 before the swap and 1 after the swap)
+                result += j * (row1Missing.Count() + col1Missing.Count() + row2Missing.Count() + col2Missing.Count());
+            }
+            //undo the swap and return the heuristic improvement of the swap.
+            int two = grid[row2, col2].Number;
+            grid[row2, col2].Number = grid[row1, col1].Number;
+            grid[row1, col1].Number = two;
+            return result;
         }
         static void Main(string[] args)
         {
+            List<int> heuristicsData = new List<int>();
+            int maxTimeOnPlateau = 8;
+            int S = 1;
+            int s = 0;
+            bool performRandomWalk = false;
+
             int[,] grid = readGrid();
             int N = (int)Math.Sqrt(grid.Length);
             Pair[,] filledGrid = fillGrid(grid);
@@ -274,16 +275,60 @@ namespace ConsoleApp1
             // maak een lijst van lengte sqrt(N) met random volgorde hoe we door de blokken gaan.
             List<int> randomOrder = new List<int>();
             int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
-
-            while (HeuristicValue(filledGrid, 4) != 0)
+            int heuristicValue = HeuristicValue(filledGrid, N);
+            heuristicsData.Add(heuristicValue);
+            int timesOnPlateau = 0;
+            while (HeuristicValue(filledGrid, N) != 0)
             {
-                int currentHeuristicValue = HeuristicValue(filledGrid, 4);
-                Console.WriteLine(currentHeuristicValue); // 4 aanpassen naar dynamisch getal
+                bool improved = false;
                 randomOrder = BoxOrder(N); // nieuwe random volgorde in welke box er geswapped word
                 foreach (var box in randomOrder)
                 {
-                    ChangeInBox(filledGrid, box, boxSize, currentHeuristicValue, N); // change 1 back to box for dynamic
+                    Console.WriteLine(box);
+                    //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
+                    //remember that the heuristValue shoud get lower, so ChangeInBox() returns an int <=0.
+                    if (timesOnPlateau > maxTimeOnPlateau)
+                    {
+                        performRandomWalk = true;
+                        timesOnPlateau = 0;
+                        s = 0;
+                    }
+                    if (s == S)
+                    {
+                        performRandomWalk = false;
+                        s = 0;
+                    }
+                    if (performRandomWalk == true)
+                    {
+                        s++;
+                        heuristicValue += randomWalk(filledGrid, box, boxSize, N);
+                        heuristicsData.Add(heuristicValue);
+                        //printGrid(filledGrid);
+                        Console.WriteLine(heuristicValue);
+                    }
+                    else
+                    {
+                        int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
+                        heuristicValue += heuristicChange;
+                        heuristicsData.Add(heuristicValue);
+                        //printGrid(filledGrid);
+                        Console.WriteLine("heuristic Value:");
+                        Console.WriteLine(heuristicValue);
+                        if (heuristicChange < 0)
+                        {
+                            timesOnPlateau = 0;
+                            improved = true;
+                            break;
+
+                        }
+                        else
+                        {
+                            timesOnPlateau++;
+                        }
+
+                    }
                 }
+                //if (improved==false)timesOnPlateau = 1000;
             }
 
             Console.ReadLine();
