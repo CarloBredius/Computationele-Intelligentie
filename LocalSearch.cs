@@ -247,7 +247,7 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             List<int> heuristicsData = new List<int>();
-            int maxTimeOnPlateau = 30;
+            int maxTimeOnPlateau = 15;
             int S = 1;
             int s = 0;
             bool performRandomWalk = false;
