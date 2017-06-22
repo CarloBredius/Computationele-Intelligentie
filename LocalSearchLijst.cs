@@ -68,6 +68,20 @@ namespace ConsoleApp1
             return result;
         }
 
+        static List<int> BoxOrder(int N)
+        {
+            List<int> boxOrderList = Enumerable.Range(0, N).ToList();
+            List<int> randomizedList = new List<int>();
+            Random r = new Random();
+            while (boxOrderList.Count > 0)
+            {
+                int randomIndex = r.Next(0, boxOrderList.Count);
+                randomizedList.Add(boxOrderList[randomIndex]);
+                boxOrderList.RemoveAt(randomIndex);
+            }
+            return randomizedList; //return the new random list
+        }
+
         static Pair[,] fillGrid(int[,] grid)
         {
             int N = (int)Math.Sqrt(grid.Length);
@@ -119,8 +133,9 @@ namespace ConsoleApp1
             return filledGrid;
         }
 
-        static int randomWalk(Pair[,] grid, int box, int boxSize, int N, Random r)
+        static int randomWalk(Pair[,] grid, int box, int boxSize, int N)
         {
+            Random r = new Random();
             int row1;
             int col1;
             do
@@ -247,7 +262,7 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             List<int> heuristicsData = new List<int>();
-            int maxTimeOnPlateau = 30;
+            int maxTimeOnPlateau = 8;
             int S = 1;
             int s = 0;
             bool performRandomWalk = false;
@@ -258,64 +273,65 @@ namespace ConsoleApp1
             printGrid(filledGrid);
 
             // maak een lijst van lengte sqrt(N) met random volgorde hoe we door de blokken gaan.
+            List<int> randomOrder = new List<int>();
             int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
             int heuristicValue = HeuristicValue(filledGrid, N);
             heuristicsData.Add(heuristicValue);
             int timesOnPlateau = 0;
-            Random r = new Random();
-            List<int> listPlateauSizes = new List<int>();
             while (HeuristicValue(filledGrid, N) != 0)
             {
-                if (heuristicsData.Count() > 100000)
+                bool improved = false;
+                randomOrder = BoxOrder(N); // nieuwe random volgorde in welke box er geswapped word
+                foreach (var box in randomOrder)
                 {
-                    string csv1 = String.Join(",", heuristicsData.Select(x => x.ToString()).ToArray());
-                }
-
-                int box = r.Next(N);
-                //Console.WriteLine(box);
-                //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
-                //remember that the heuristValue shoud get lower, so ChangeInBox() returns an int <=0.
-                if (timesOnPlateau > maxTimeOnPlateau)
-                {
-                    performRandomWalk = true;
-                    timesOnPlateau = 0;
-                    s = 0;
-                }
-                if (s == S)
-                {
-                    performRandomWalk = false;
-                    s = 0;
-                }
-                if (performRandomWalk == true)
-                {
-                    s++;
-                    heuristicValue += randomWalk(filledGrid, box, boxSize, N, r);
-                    heuristicsData.Add(heuristicValue);
-                    //printGrid(filledGrid);
-                    // Console.WriteLine(heuristicValue);
-                }
-                else
-                {
-                    int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
-                    heuristicValue += heuristicChange;
-                    heuristicsData.Add(heuristicValue);
-                    //printGrid(filledGrid);
-                    //Console.WriteLine("heuristic Value:");
-                    //Console.WriteLine(heuristicValue);
-                    if (heuristicChange < 0)
+                    Console.WriteLine(box);
+                    //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
+                    //remember that the heuristValue shoud get lower, so ChangeInBox() returns an int <=0.
+                    if (timesOnPlateau > maxTimeOnPlateau)
                     {
-                        listPlateauSizes.Add(timesOnPlateau);
+                        performRandomWalk = true;
                         timesOnPlateau = 0;
+                        s = 0;
+                    }
+                    if (s == S)
+                    {
+                        performRandomWalk = false;
+                        s = 0;
+                    }
+                    if (performRandomWalk == true)
+                    {
+                        s++;
+                        heuristicValue += randomWalk(filledGrid, box, boxSize, N);
+                        heuristicsData.Add(heuristicValue);
+                        //printGrid(filledGrid);
+                        Console.WriteLine(heuristicValue);
                     }
                     else
                     {
-                        timesOnPlateau++;
+                        int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
+                        heuristicValue += heuristicChange;
+                        heuristicsData.Add(heuristicValue);
+                        //printGrid(filledGrid);
+                        Console.WriteLine("heuristic Value:");
+                        Console.WriteLine(heuristicValue);
+
+                        if (heuristicChange < 0)
+                        {
+                            timesOnPlateau = 0;
+                            improved = true;
+                            break;
+
+                        }
+                        else
+                        {
+                            timesOnPlateau++;
+                        }
+
                     }
                 }
+                //if (improved==false)timesOnPlateau = 1000;
             }
-            printGrid(filledGrid);
-            string csv = String.Join(",", heuristicsData.Select(x => x.ToString()).ToArray());
-            string csv2 = String.Join(",", listPlateauSizes.Select(x => x.ToString()).ToArray());
+
             Console.ReadLine();
         }
         struct Pair
