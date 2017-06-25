@@ -8,6 +8,7 @@ namespace ConsoleApp1
 {
     class Program
     {
+        //function to print a sudoku
         static void printGrid(Pair[,] grid)
         {
             int N = (int)Math.Sqrt(grid.Length);
@@ -29,6 +30,7 @@ namespace ConsoleApp1
             }
             Console.WriteLine();
         }
+        //function to read a sudoku from the console
         static int[,] readGrid()
         {
             int N;
@@ -50,7 +52,7 @@ namespace ConsoleApp1
             }
             return puzzle;
         }
-
+        //function to calculate the heuristic value of a sudoku. The more errors the higher.
         static int HeuristicValue(Pair[,] grid, int N)
         {
             int result = 0;
@@ -67,14 +69,15 @@ namespace ConsoleApp1
             }
             return result;
         }
-
+        //function to fill a sudoku with only consistent boxes.
         static Pair[,] fillGrid(int[,] grid)
         {
             int N = (int)Math.Sqrt(grid.Length);
             Pair[,] filledGrid = new Pair[N, N];
             int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
+            //double array with lists for every box create a tabu list with numbers that are allready taken
             List<int>[,] taboe = new List<int>[boxSize, boxSize];
-
+            //loop once to check which numbers are allowed and put them in tabu
             for (int i = 0; i < boxSize; i++)
                 for (int j = 0; j < boxSize; j++)
                 {
@@ -97,7 +100,7 @@ namespace ConsoleApp1
                             filledGrid[row, col] = p;
                         }
                 }
-
+            //loop again to fill the sudoku
             for (int i = 0; i < boxSize; i++)
                 for (int j = 0; j < boxSize; j++)
                 {
@@ -118,7 +121,7 @@ namespace ConsoleApp1
                 }
             return filledGrid;
         }
-
+        //perform a random swap in a given box and return the change in heuristic value 
         static int randomWalk(Pair[,] grid, int box, int boxSize, int N, Random r)
         {
             int row1;
@@ -155,9 +158,9 @@ namespace ConsoleApp1
             //update heuristic value
             return heuristicChange;
         }
-        /*function that perfoms a swap in the given box and alters the heuristicValue
-        if its the best heuristic swap in the box and if the total heuristic value of 
-        the grid lowers.Returns whether there was a swap or not.*/
+        /*function that perfoms the best heuristic swap in the given box 
+        and returns the change in heuristic value. If the best swap highers 
+        the heuristic value there will be no swap*/
         static int hillClimb(Pair[,] grid, int box, int boxSize, int N)
         {
             int boxRow = box / boxSize;
@@ -207,6 +210,7 @@ namespace ConsoleApp1
             grid[rowOne, colOne].Number = two;
             return bestImprovement;
         }
+        //returns the heuristic change of a given swap between two cells in the sudoku
         static int swapHeuristic(Pair[,] grid, int N, int row1, int col1, int row2, int col2)
         {
             int result = 0;
@@ -246,11 +250,14 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
+            //research data
             List<int> heuristicsData = new List<int>();
             string[] csv3 = new string[10];
+            List<int> listPlateauSizes = new List<int>();
+            //starting values
             int maxTimeOnPlateau = 50;
             bool performRandomWalk = false;
-
+            //get the sudoku from the console
             int[,] grid = readGrid();
             int N = (int)Math.Sqrt(grid.Length);
             Pair[,] filledGrid = fillGrid(grid);
@@ -258,7 +265,9 @@ namespace ConsoleApp1
 
             // maak een lijst van lengte sqrt(N) met random volgorde hoe we door de blokken gaan.
             int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
-            //create a list of unswappable boxes:
+            //create a list of unswappable boxes. 
+            //(boxes with zero or one free numbers can't have swaps. 
+            //They are blacklisted here)
             List<int> forbiddenBoxes = new List<int>();
             for (int boxRow = 0; boxRow < boxSize; boxRow++)
                 for (int boxCol = 0; boxCol < boxSize; boxCol++)
@@ -276,10 +285,11 @@ namespace ConsoleApp1
                 }
 
             Random r = new Random();
-            List<int> listPlateauSizes = new List<int>();
-
+            
+            //loop through S values
             for (int S = 1; S < 8; S++)
             {
+                //every S value has different range of relevant plateauTimes (i):
                 List<int> steps = new List<int>();
                 int iMax = 9;
                 int iMin = 0;
@@ -318,41 +328,53 @@ namespace ConsoleApp1
                     iMax = 51;
                     iMin = 10;
                 }
+                //loop through the plateauTimes:
                 for (int i = iMin; i < iMax; i++)
                 {
+                    //research value:
                     heuristicsData.Clear();
-                    maxTimeOnPlateau = i;
 
+                    maxTimeOnPlateau = i;
+                    //solve 10 times for smoother results:
                     for (int j = 0; j < 10; j++)
                     {
+                        //starting values:
                         int timesOnPlateau = 0;
                         int s = 0;
+
+                        //reset the sudoku to beginning state:
                         filledGrid = fillGrid(grid);
 
+                        //calculate the heuristicValue at the start, 
+                        //from now on only heuristic changes have to be found to update this value.
                         int heuristicValue = HeuristicValue(filledGrid, N);
                         heuristicsData.Add(heuristicValue);
-
+                        //finally solving a sudoku:
                         while (HeuristicValue(filledGrid, N) != 0)
                         {
+                            //choose a random box:
                             int box = 0;
                             do
                             {
                                 box = r.Next(N);
                             }
                             while (forbiddenBoxes.Contains(box));
-                            //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
-                            //remember that the heuristValue shoud get lower, so ChangeInBox() returns an int <=0.
+                           //now determine if there will be a hillclimb or random walk:
+
+                            //start random walking when:
                             if (timesOnPlateau > maxTimeOnPlateau)
                             {
                                 performRandomWalk = true;
                                 timesOnPlateau = 0;
                                 s = 0;
                             }
+                            //stop random walking when:
                             if (s == S)
                             {
                                 performRandomWalk = false;
                                 s = 0;
                             }
+                            //random walk:
                             if (performRandomWalk == true)
                             {
                                 s++;
@@ -361,21 +383,25 @@ namespace ConsoleApp1
                                 //printGrid(filledGrid);
                                 // Console.WriteLine(heuristicValue);
                             }
+                            //hill climb:
                             else
                             {
+                                //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
+                                //remember that the heuristValue shoud get lower or stays equal, so ChangeInBox() returns an int <=0.
                                 int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
                                 heuristicValue += heuristicChange;
                                 heuristicsData.Add(heuristicValue);
-                                //printGrid(filledGrid);
-                                //Console.WriteLine("heuristic Value:");
-                                //Console.WriteLine(heuristicValue);
+                                //if improvement, the timesOnPlateau value is reset. 
                                 if (heuristicChange < 0)
                                 {
-                                    listPlateauSizes.Add(timesOnPlateau);
                                     timesOnPlateau = 0;
+
+                                    //research value update:
+                                    listPlateauSizes.Add(timesOnPlateau);
                                 }
                                 else
                                 {
+                                    //research value update:
                                     timesOnPlateau++;
                                 }
                             }
@@ -386,17 +412,13 @@ namespace ConsoleApp1
                         Console.WriteLine(i);
                         //printGrid(filledGrid);
                     }
-                    Console.WriteLine("maxOnPlateau:");
-                    Console.WriteLine(i);
+                    Console.WriteLine("S:");
+                    Console.WriteLine(S);
                     steps.Add(heuristicsData.Count);
                 }
-                Console.WriteLine("S:");
-                Console.WriteLine(S);
+                //research update:
                 csv3[S] = String.Join(",", steps.Select(x => x.ToString()).ToArray());
             }
-
-
-            //string csv2 = String.Join(",", listPlateauSizes.Select(x => x.ToString()).ToArray());
             Console.ReadLine();
         }
         struct Pair
