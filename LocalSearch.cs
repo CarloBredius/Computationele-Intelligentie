@@ -247,9 +247,8 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             List<int> heuristicsData = new List<int>();
+            string[] csv3 = new string[10];
             int maxTimeOnPlateau = 50;
-            int S = 1;
-            int s = 0;
             bool performRandomWalk = false;
 
             int[,] grid = readGrid();
@@ -259,77 +258,145 @@ namespace ConsoleApp1
 
             // maak een lijst van lengte sqrt(N) met random volgorde hoe we door de blokken gaan.
             int boxSize = (int)Math.Sqrt(Math.Sqrt(grid.Length));
-            int heuristicValue = HeuristicValue(filledGrid, N);
-            heuristicsData.Add(heuristicValue);
-            int timesOnPlateau = 0;
+            //create a list of unswappable boxes:
+            List<int> forbiddenBoxes = new List<int>();
+            for (int boxRow = 0; boxRow < boxSize; boxRow++)
+                for (int boxCol = 0; boxCol < boxSize; boxCol++)
+                {
+                    int nFixed = 0;
+                    for (int row = boxRow * boxSize; row < (boxRow * boxSize) + boxSize; row++)
+                        for (int col = boxCol * boxSize; col < (boxCol * boxSize) + boxSize; col++)
+                        {
+                            if (filledGrid[row, col].Fixed == true)
+                            {
+                                nFixed++;
+                            }
+                        }
+                    if (nFixed > N - 2) { forbiddenBoxes.Add(boxRow * boxSize + boxCol); }
+                }
+
             Random r = new Random();
             List<int> listPlateauSizes = new List<int>();
-            List<int> steps = new List<int>();
-            for (int i = 5; i < 30; i++)
-            {
 
-                maxTimeOnPlateau = i;
-                heuristicsData.Clear();
-                for (int j = 0; j < 30; j++)
+            for (int S = 1; S < 8; S++)
+            {
+                List<int> steps = new List<int>();
+                int iMax = 9;
+                int iMin = 0;
+                if (S == 1)
                 {
-                    filledGrid = fillGrid(grid);
-                    while (HeuristicValue(filledGrid, N) != 0)
+                    iMax = 11;
+                    iMin = 2;
+                }
+                if (S == 2)
+                {
+                    iMax = 21;
+                    iMin = 3;
+                }
+                if (S == 3)
+                {
+                    iMax = 31;
+                    iMin = 7;
+                }
+                if (S == 4)
+                {
+                    iMax = 42;
+                    iMin = 8;
+                }
+                if (S == 5)
+                {
+                    iMax = 51;
+                    iMin = 10;
+                }
+                if (S == 6)
+                {
+                    iMax = 51;
+                    iMin = 10;
+                }
+                if (S == 7)
+                {
+                    iMax = 51;
+                    iMin = 10;
+                }
+                for (int i = iMin; i < iMax; i++)
+                {
+                    heuristicsData.Clear();
+                    maxTimeOnPlateau = i;
+
+                    for (int j = 0; j < 10; j++)
                     {
-                        int box = r.Next(N);
-                        //Console.WriteLine(box);
-                        //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
-                        //remember that the heuristValue shoud get lower, so ChangeInBox() returns an int <=0.
-                        if (timesOnPlateau > maxTimeOnPlateau)
+                        int timesOnPlateau = 0;
+                        int s = 0;
+                        filledGrid = fillGrid(grid);
+
+                        int heuristicValue = HeuristicValue(filledGrid, N);
+                        heuristicsData.Add(heuristicValue);
+
+                        while (HeuristicValue(filledGrid, N) != 0)
                         {
-                            performRandomWalk = true;
-                            timesOnPlateau = 0;
-                            s = 0;
-                        }
-                        if (s == S)
-                        {
-                            performRandomWalk = false;
-                            s = 0;
-                        }
-                        if (performRandomWalk == true)
-                        {
-                            s++;
-                            heuristicValue += randomWalk(filledGrid, box, boxSize, N, r);
-                            heuristicsData.Add(heuristicValue);
-                            //printGrid(filledGrid);
-                            // Console.WriteLine(heuristicValue);
-                        }
-                        else
-                        {
-                            int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
-                            heuristicValue += heuristicChange;
-                            heuristicsData.Add(heuristicValue);
-                            //printGrid(filledGrid);
-                            //Console.WriteLine("heuristic Value:");
-                            //Console.WriteLine(heuristicValue);
-                            if (heuristicChange < 0)
+                            int box = 0;
+                            do
                             {
-                                listPlateauSizes.Add(timesOnPlateau);
+                                box = r.Next(N);
+                            }
+                            while (forbiddenBoxes.Contains(box));
+                            //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
+                            //remember that the heuristValue shoud get lower, so ChangeInBox() returns an int <=0.
+                            if (timesOnPlateau > maxTimeOnPlateau)
+                            {
+                                performRandomWalk = true;
                                 timesOnPlateau = 0;
+                                s = 0;
+                            }
+                            if (s == S)
+                            {
+                                performRandomWalk = false;
+                                s = 0;
+                            }
+                            if (performRandomWalk == true)
+                            {
+                                s++;
+                                heuristicValue += randomWalk(filledGrid, box, boxSize, N, r);
+                                heuristicsData.Add(heuristicValue);
+                                //printGrid(filledGrid);
+                                // Console.WriteLine(heuristicValue);
                             }
                             else
                             {
-                                timesOnPlateau++;
+                                int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
+                                heuristicValue += heuristicChange;
+                                heuristicsData.Add(heuristicValue);
+                                //printGrid(filledGrid);
+                                //Console.WriteLine("heuristic Value:");
+                                //Console.WriteLine(heuristicValue);
+                                if (heuristicChange < 0)
+                                {
+                                    listPlateauSizes.Add(timesOnPlateau);
+                                    timesOnPlateau = 0;
+                                }
+                                else
+                                {
+                                    timesOnPlateau++;
+                                }
                             }
                         }
+                        //solved!
+
+
+                        Console.WriteLine(i);
+                        //printGrid(filledGrid);
                     }
-                    //solved!
+                    Console.WriteLine("maxOnPlateau:");
                     Console.WriteLine(i);
-                    printGrid(filledGrid);
-
-                    string csv = String.Join(",", heuristicsData.Select(x => x.ToString()).ToArray());
-                    string csv20 = String.Join(",", listPlateauSizes.Select(x => x.ToString()).ToArray());
-
+                    steps.Add(heuristicsData.Count);
                 }
-                steps.Add(heuristicsData.Count);
+                Console.WriteLine("S:");
+                Console.WriteLine(S);
+                csv3[S] = String.Join(",", steps.Select(x => x.ToString()).ToArray());
             }
-            string csv3 = String.Join(",", steps.Select(x => x.ToString()).ToArray());
 
-            string csv2 = String.Join(",", listPlateauSizes.Select(x => x.ToString()).ToArray());
+
+            //string csv2 = String.Join(",", listPlateauSizes.Select(x => x.ToString()).ToArray());
             Console.ReadLine();
         }
         struct Pair
