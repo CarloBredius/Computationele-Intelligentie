@@ -285,7 +285,7 @@ namespace ConsoleApp1
                 }
 
             Random r = new Random();
-            
+
             //loop through S values
             for (int S = 1; S < 8; S++)
             {
@@ -293,41 +293,41 @@ namespace ConsoleApp1
                 List<int> steps = new List<int>();
                 int iMax = 9;
                 int iMin = 0;
-                if (S == 1)
+                switch (S)
                 {
-                    iMax = 11;
-                    iMin = 2;
+                    case 1:
+                        iMax = 11;
+                        iMin = 2;
+                        break;
+                    case 2:
+                        iMax = 21;
+                        iMin = 3;
+                        break;
+                    case 3:
+                        iMax = 31;
+                        iMin = 7;
+                        break;
+                    case 4:
+                        iMax = 42;
+                        iMin = 8;
+                        break;
+                    case 5:
+                        iMax = 51;
+                        iMin = 10;
+                        break;
+                    case 6:
+                        iMax = 51;
+                        iMin = 10;
+                        break;
+                    case 7:
+                        iMax = 51;
+                        iMin = 10;
+                        break;
+                    default:
+                        Console.WriteLine("S not in range of 1 - 7");
+                        break;
                 }
-                if (S == 2)
-                {
-                    iMax = 21;
-                    iMin = 3;
-                }
-                if (S == 3)
-                {
-                    iMax = 31;
-                    iMin = 7;
-                }
-                if (S == 4)
-                {
-                    iMax = 42;
-                    iMin = 8;
-                }
-                if (S == 5)
-                {
-                    iMax = 51;
-                    iMin = 10;
-                }
-                if (S == 6)
-                {
-                    iMax = 51;
-                    iMin = 10;
-                }
-                if (S == 7)
-                {
-                    iMax = 51;
-                    iMin = 10;
-                }
+
                 //loop through the plateauTimes:
                 for (int i = iMin; i < iMax; i++)
                 {
@@ -359,7 +359,7 @@ namespace ConsoleApp1
                                 box = r.Next(N);
                             }
                             while (forbiddenBoxes.Contains(box));
-                           //now determine if there will be a hillclimb or random walk:
+                            //now determine if there will be a hillclimb or random walk:
 
                             //start random walking when:
                             if (timesOnPlateau > maxTimeOnPlateau)
