@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace ConsoleApp1
 {
@@ -254,9 +255,26 @@ namespace ConsoleApp1
             List<int> heuristicsData = new List<int>();
             string[] csv3 = new string[10];
             List<int> listPlateauSizes = new List<int>();
+
+            //timing variables
+            Stopwatch stopWatch = new Stopwatch();
+            List<long> TimerTotal = new List<long>();
+            List<long> TimerS = new List<long>();
+            long elapsedTime;
+
+            // tracing recursive steps
+            List<long> recursiveStepListTotal = new List<long>();
+            List<long> recursiveStepListS = new List<long>();
+            long recursiveSteps;
+
             //starting values
             int maxTimeOnPlateau = 50;
             bool performRandomWalk = false;
+            int Smax = 2;
+
+            // array to keep track of average recursive steps and average time per s
+            long[,] DataPerS = new long[Smax, 2];
+
             //get the sudoku from the console
             int[,] grid = readGrid();
             int N = (int)Math.Sqrt(grid.Length);
@@ -287,7 +305,7 @@ namespace ConsoleApp1
             Random r = new Random();
 
             //loop through S values
-            for (int S = 1; S < 8; S++)
+            for (int S = 1; S <= Smax; S++)
             {
                 //every S value has different range of relevant plateauTimes (i):
                 List<int> steps = new List<int>();
@@ -296,32 +314,32 @@ namespace ConsoleApp1
                 switch (S)
                 {
                     case 1:
-                        iMax = 11;
                         iMin = 2;
+                        iMax = 11;
                         break;
                     case 2:
-                        iMax = 21;
                         iMin = 3;
+                        iMax = 21;
                         break;
                     case 3:
-                        iMax = 31;
                         iMin = 7;
+                        iMax = 31;
                         break;
                     case 4:
-                        iMax = 42;
                         iMin = 8;
+                        iMax = 42;
                         break;
                     case 5:
-                        iMax = 51;
                         iMin = 10;
+                        iMax = 51;
                         break;
                     case 6:
-                        iMax = 51;
                         iMin = 10;
+                        iMax = 51;
                         break;
                     case 7:
-                        iMax = 51;
                         iMin = 10;
+                        iMax = 51;
                         break;
                     default:
                         Console.WriteLine("S not in range of 1 - 7");
@@ -331,6 +349,8 @@ namespace ConsoleApp1
                 //loop through the plateauTimes:
                 for (int i = iMin; i < iMax; i++)
                 {
+                    Console.WriteLine("S = " + S + ", maxPlateau = " + i);
+
                     //research value:
                     heuristicsData.Clear();
 
@@ -338,6 +358,13 @@ namespace ConsoleApp1
                     //solve 10 times for smoother results:
                     for (int j = 0; j < 10; j++)
                     {
+                        //Time and recursive steps initalize
+                        recursiveSteps = 0;
+                        elapsedTime = 0;
+
+                        stopWatch.Reset();
+                        stopWatch.Start();
+
                         //starting values:
                         int timesOnPlateau = 0;
                         int s = 0;
@@ -352,6 +379,9 @@ namespace ConsoleApp1
                         //finally solving a sudoku:
                         while (HeuristicValue(filledGrid, N) != 0)
                         {
+                            // increment recursive steps
+                            recursiveSteps++;
+
                             //choose a random box:
                             int box = 0;
                             do
@@ -407,18 +437,74 @@ namespace ConsoleApp1
                             }
                         }
                         //solved!
+                        stopWatch.Stop();
+                        elapsedTime = stopWatch.ElapsedMilliseconds;
+                        TimerS.Add(elapsedTime);
+                        TimerTotal.Add(elapsedTime);
 
+                        recursiveStepListS.Add(recursiveSteps);
+                        recursiveStepListTotal.Add(recursiveSteps);
 
-                        Console.WriteLine(i);
+                        Console.WriteLine(j + ": time: " + elapsedTime + "\t recursive steps: " + recursiveSteps);
                         //printGrid(filledGrid);
                     }
-                    Console.WriteLine("S:");
-                    Console.WriteLine(S);
+                    Console.WriteLine();
                     steps.Add(heuristicsData.Count);
                 }
+                //calculate average recursive steps in S
+                long recursiveStepsInS = 0;
+                foreach (long stepsS in recursiveStepListS)
+                {
+                    recursiveStepsInS += stepsS;
+                }
+                long averageRecursiveSteps = (recursiveStepsInS / recursiveStepListS.Count);
+
+                //calculate average time in S
+                long timeInS = 0;
+                foreach (long timeS in TimerS)
+                {
+                    timeInS += timeS;
+                }
+                long averageTimeInS = (timeInS / TimerS.Count);
+                Console.WriteLine();
+                Console.WriteLine("Average recursive steps in S = " + S + " is " + averageRecursiveSteps + " steps");
+                Console.WriteLine("Average time in S = " + S + " is " + averageTimeInS + " ms");
+                Console.WriteLine();
+                
+                // store average data of this S;
+                DataPerS[0, S - 1] = averageRecursiveSteps;
+                DataPerS[1, S - 1] = averageTimeInS;
+
+                //clear lists for the next S
+                TimerS.Clear();
+                recursiveStepListS.Clear();
+
                 //research update:
                 csv3[S] = String.Join(",", steps.Select(x => x.ToString()).ToArray());
             }
+            //calculate total recursive steps
+            long totalRecursiveSteps = 0;
+            foreach (long steps in recursiveStepListTotal)
+            {
+                totalRecursiveSteps += steps;
+            }
+
+            //calculate total time
+            long totalTime = 0;
+            foreach (long time in TimerTotal)
+            {
+                totalTime += time;
+            }
+            Console.WriteLine("Averages per S: ");
+            for (int i = 0; i < DataPerS.Length / 2; i++)
+            {
+                Console.WriteLine("S = " + (i + 1) + ", Steps = " + DataPerS[0, i] + ", time = " + DataPerS[1, i]);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Averages total:");
+            Console.WriteLine("time: " + (totalTime / TimerTotal.Count));
+            Console.WriteLine("steps: " + (totalRecursiveSteps / recursiveStepListTotal.Count));
+
             Console.ReadLine();
         }
         struct Pair
