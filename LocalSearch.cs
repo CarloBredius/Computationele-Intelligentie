@@ -270,10 +270,10 @@ namespace ConsoleApp1
             //starting values
             int maxTimeOnPlateau = 50;
             bool performRandomWalk = false;
-            int Smax = 2;
+            int Smax = 7;
 
             // array to keep track of average recursive steps and average time per s
-            long[,] DataPerS = new long[Smax, 2];
+            long[,] DataPerS = new long[2, Smax];
 
             //get the sudoku from the console
             int[,] grid = readGrid();
