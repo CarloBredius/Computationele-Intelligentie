@@ -363,7 +363,7 @@ namespace ConsoleApp1
                         break;
                     case 6:
                         iMin = 23;
-                        iMax = 58;
+                        iMax = 28;
                         break;
                     case 7:
                         iMin = 25;
