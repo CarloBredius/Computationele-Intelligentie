@@ -260,6 +260,21 @@ namespace ConsoleApp1
             grid[row1, col1].Number = two;
             return result;
         }
+
+        static List<int> BoxOrder(int N)
+        {
+            List<int> boxOrderList = Enumerable.Range(0, N).ToList();
+            List<int> randomizedList = new List<int>();
+            Random r = new Random();
+            while (boxOrderList.Count > 0)
+            {
+                int randomIndex = r.Next(0, boxOrderList.Count);
+                randomizedList.Add(boxOrderList[randomIndex]);
+                boxOrderList.RemoveAt(randomIndex);
+            }
+            return randomizedList; //return the new random list
+        }
+
         static void Main(string[] args)
         {
             //research data
@@ -393,57 +408,58 @@ namespace ConsoleApp1
                             // increment swaps
                             Swaps++;
 
-                            //choose a random box:
-                            int box = 0;
-                            do
+                            //choose a random box order:
+                            List<int> randomOrder = BoxOrder(N);
+                            foreach (var box in randomOrder)
                             {
-                                box = r.Next(N);
-                            }
-                            while (forbiddenBoxes.Contains(box));
-                            //now determine if there will be a hillclimb or random walk:
 
-                            //start random walking when:
-                            if (timesOnPlateau > maxTimeOnPlateau)
-                            {
-                                performRandomWalk = true;
-                                timesOnPlateau = 0;
-                                s = 0;
-                            }
-                            //stop random walking when:
-                            if (s == S)
-                            {
-                                performRandomWalk = false;
-                                s = 0;
-                            }
-                            //random walk:
-                            if (performRandomWalk == true)
-                            {
-                                s++;
-                                heuristicValue += randomWalk(filledGrid, box, boxSize, N, r);
-                                heuristicsData.Add(heuristicValue);
-                                //printGrid(filledGrid);
-                                // Console.WriteLine(heuristicValue);
-                            }
-                            //hill climb:
-                            else
-                            {
-                                //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
-                                //remember that the heuristValue shoud get lower or stays equal, so ChangeInBox() returns an int <=0.
-                                int heuristicChange = hillClimb(filledGrid, box, boxSize, N, r);
-                                heuristicValue += heuristicChange;
-                                heuristicsData.Add(heuristicValue);
-                                //if improvement, the timesOnPlateau value is reset. 
-                                if (heuristicChange < 0)
+                                if (forbiddenBoxes.Contains(box)) { continue; };
+                                //now determine if there will be a hillclimb or random walk:
+
+                                //start random walking when:
+                                if (timesOnPlateau > maxTimeOnPlateau)
                                 {
+                                    performRandomWalk = true;
                                     timesOnPlateau = 0;
-
-                                    //research value update:
-                                    listPlateauSizes.Add(timesOnPlateau);
+                                    s = 0;
                                 }
+                                //stop random walking when:
+                                if (s == S)
+                                {
+                                    performRandomWalk = false;
+                                    s = 0;
+                                }
+                                //random walk:
+                                if (performRandomWalk == true)
+                                {
+                                    s++;
+                                    heuristicValue += randomWalk(filledGrid, box, boxSize, N, r);
+                                    heuristicsData.Add(heuristicValue);
+                                    //printGrid(filledGrid);
+                                    // Console.WriteLine(heuristicValue);
+                                }
+                                //hill climb:
                                 else
                                 {
-                                    //research value update:
-                                    timesOnPlateau++;
+                                    //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
+                                    //remember that the heuristValue shoud get lower or stays equal, so ChangeInBox() returns an int <=0.
+                                    int heuristicChange = hillClimb(filledGrid, box, boxSize, N, r);
+                                    heuristicValue += heuristicChange;
+                                    heuristicsData.Add(heuristicValue);
+                                    //if improvement, the timesOnPlateau value is reset. 
+                                    if (heuristicChange < 0)
+                                    {
+                                        timesOnPlateau = 0;
+
+                                        //research value update:
+                                        listPlateauSizes.Add(timesOnPlateau);
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        //research value update:
+                                        timesOnPlateau++;
+                                    }
                                 }
                             }
                         }
