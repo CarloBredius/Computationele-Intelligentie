@@ -162,13 +162,13 @@ namespace ConsoleApp1
         /*function that perfoms the best heuristic swap in the given box 
         and returns the change in heuristic value. If the best swap highers 
         the heuristic value there will be no swap*/
-        static int hillClimb(Pair[,] grid, int box, int boxSize, int N)
+        static int hillClimb(Pair[,] grid, int box, int boxSize, int N, Random r)
         {
             int boxRow = box / boxSize;
             int boxCol = box % boxSize;
             //store the best swap and its improvement. 
             //(bestSwap contains the row and col of both positions, bestImprovement is the heuristic improvement of the swap (<=0)) 
-            int[] bestSwap = new int[4];
+            List<int[]> bestSwap = new List<int[]>();
             int bestImprovement = 0;
             //iterate through the box
             for (int i = 0; i < N; i++)
@@ -192,8 +192,13 @@ namespace ConsoleApp1
                             //if its the best swap so far, store the rate of improvement and the cells of the swap
                             if (heuristicImprovement <= bestImprovement)
                             {
+                                if (heuristicImprovement < bestImprovement)
+                                {
+                                    bestSwap.Clear();
+                                }
                                 bestImprovement = heuristicImprovement;
-                                bestSwap = new int[] { row1, col1, row2, col2 };
+                                bestSwap.Add(new int[] { row1, col1, row2, col2 });
+
                             }
                         }
                     }
@@ -201,15 +206,21 @@ namespace ConsoleApp1
             }
             //we have checked every possible swap in the box. Now we can perform the best swap, 
             //and change the heuristic value
-            int rowOne = bestSwap[0];
-            int colOne = bestSwap[1];
-            int rowTwo = bestSwap[2];
-            int colTwo = bestSwap[3];
+            if (bestSwap.Count > 0)
+            {
+                int swap = r.Next(bestSwap.Count);
+                int rowOne = bestSwap[swap][0];
+                int colOne = bestSwap[swap][1];
+                int rowTwo = bestSwap[swap][2];
+                int colTwo = bestSwap[swap][3];
 
-            int two = grid[rowTwo, colTwo].Number;
-            grid[rowTwo, colTwo].Number = grid[rowOne, colOne].Number;
-            grid[rowOne, colOne].Number = two;
-            return bestImprovement;
+                int two = grid[rowTwo, colTwo].Number;
+                grid[rowTwo, colTwo].Number = grid[rowOne, colOne].Number;
+                grid[rowOne, colOne].Number = two;
+                return bestImprovement;
+            }
+            return 0;
+
         }
         //returns the heuristic change of a given swap between two cells in the sudoku
         static int swapHeuristic(Pair[,] grid, int N, int row1, int col1, int row2, int col2)
@@ -268,8 +279,8 @@ namespace ConsoleApp1
             long Swaps;
 
             //starting values
-            int maxTimeOnPlateau = 50;
             bool performRandomWalk = false;
+            int Smin = 1;
             int Smax = 7;
 
             // array to keep track of average swaps and average time per s
@@ -305,7 +316,7 @@ namespace ConsoleApp1
             Random r = new Random();
 
             //loop through S values
-            for (int S = 1; S <= Smax; S++)
+            for (int S = Smin; S <= Smax; S++)
             {
                 //every S value has different range of relevant plateauTimes (i):
                 List<int> steps = new List<int>();
@@ -314,32 +325,32 @@ namespace ConsoleApp1
                 switch (S)
                 {
                     case 1:
-                        iMin = 2;
-                        iMax = 11;
+                        iMin = 4;
+                        iMax = 9;
                         break;
                     case 2:
-                        iMin = 3;
-                        iMax = 21;
+                        iMin = 9;
+                        iMax = 14;
                         break;
                     case 3:
-                        iMin = 7;
-                        iMax = 31;
+                        iMin = 13;
+                        iMax = 18;
                         break;
                     case 4:
-                        iMin = 8;
-                        iMax = 42;
+                        iMin = 13;
+                        iMax = 18;
                         break;
                     case 5:
-                        iMin = 10;
-                        iMax = 51;
+                        iMin = 17;
+                        iMax = 22;
                         break;
                     case 6:
-                        iMin = 10;
-                        iMax = 51;
+                        iMin = 23;
+                        iMax = 58;
                         break;
                     case 7:
-                        iMin = 10;
-                        iMax = 51;
+                        iMin = 25;
+                        iMax = 30;
                         break;
                     default:
                         Console.WriteLine("S not in range of 1 - 7");
@@ -354,9 +365,9 @@ namespace ConsoleApp1
                     //research value:
                     heuristicsData.Clear();
 
-                    maxTimeOnPlateau = i;
+                    int maxTimeOnPlateau = i;
                     //solve 10 times for smoother results:
-                    for (int j = 0; j < 10; j++)
+                    for (int j = 0; j < 6; j++)
                     {
                         //initalize time and swaps
                         Swaps = 0;
@@ -418,7 +429,7 @@ namespace ConsoleApp1
                             {
                                 //if improvement possible perform the swap and add the improvement of the swap to the heuristicValue
                                 //remember that the heuristValue shoud get lower or stays equal, so ChangeInBox() returns an int <=0.
-                                int heuristicChange = hillClimb(filledGrid, box, boxSize, N);
+                                int heuristicChange = hillClimb(filledGrid, box, boxSize, N, r);
                                 heuristicValue += heuristicChange;
                                 heuristicsData.Add(heuristicValue);
                                 //if improvement, the timesOnPlateau value is reset. 
@@ -470,7 +481,7 @@ namespace ConsoleApp1
                 Console.WriteLine("Average swaps in S = " + S + " is " + averageSwaps + " steps");
                 Console.WriteLine("Average time in S = " + S + " is " + averageTimeInS + " ms");
                 Console.WriteLine();
-                
+
                 // store average data of this S;
                 DataPerS[0, S - 1] = averageSwaps;
                 DataPerS[1, S - 1] = averageTimeInS;
