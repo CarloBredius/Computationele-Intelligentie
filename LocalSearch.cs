@@ -220,7 +220,6 @@ namespace ConsoleApp1
                 return bestImprovement;
             }
             return 0;
-
         }
         //returns the heuristic change of a given swap between two cells in the sudoku
         static int swapHeuristic(Pair[,] grid, int N, int row1, int col1, int row2, int col2)
@@ -377,6 +376,7 @@ namespace ConsoleApp1
                 //loop through the plateauTimes:
                 for (int i = iMin; i < iMax; i++)
                 {
+                    // what S and what maxPlateau the algorithm is on
                     Console.WriteLine("S = " + S + ", maxPlateau = " + i);
 
                     //research value:
@@ -384,9 +384,9 @@ namespace ConsoleApp1
 
                     int maxTimeOnPlateau = i;
                     //solve 10 times for smoother results:
-                    for (int j = 0; j < 20; j++)
+                    for (int j = 0; j < 30; j++)
                     {
-                        //initalize time and swaps
+                        //initalize time and amount of swaps
                         Swaps = 0;
                         elapsedTime = 0;
 
