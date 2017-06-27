@@ -297,6 +297,8 @@ namespace ConsoleApp1
             bool performRandomWalk = false;
             int Smin = 1;
             int Smax = 7;
+            int maxTime = 90000; // 1.5 minute
+            bool tooLong = false; // bool om te checken of de tijdslimiet is vertreken
 
             // array to keep track of average swaps and average time per s
             long[,] DataPerS = new long[2, Smax];
@@ -405,6 +407,12 @@ namespace ConsoleApp1
                         //finally solving a sudoku:
                         while (HeuristicValue(filledGrid, N) != 0)
                         {
+                            // check time limit
+                            if (stopWatch.ElapsedMilliseconds > maxTime)
+                            {
+                                tooLong = true;
+                                break;
+                            }
                             // increment swaps
                             Swaps++;
 
@@ -463,7 +471,7 @@ namespace ConsoleApp1
                                 }
                             }
                         }
-                        //solved!
+                        //solved, or time limit
                         stopWatch.Stop();
                         elapsedTime = stopWatch.ElapsedMilliseconds;
                         TimerS.Add(elapsedTime);
@@ -471,9 +479,15 @@ namespace ConsoleApp1
 
                         SwapListS.Add(Swaps);
                         SwapListTotal.Add(Swaps);
-
-                        Console.WriteLine(j + ": time: " + elapsedTime + "\t swaps: " + Swaps);
                         //printGrid(filledGrid);
+                        if (tooLong)
+                        {
+                            Console.WriteLine(j + ": took too long");
+                        }
+                        else
+                        {
+                            Console.WriteLine(j + ": time: " + elapsedTime + "\t swaps: " + Swaps);
+                        }
                     }
                     Console.WriteLine();
                     steps.Add(heuristicsData.Count);
