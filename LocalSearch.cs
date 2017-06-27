@@ -342,32 +342,32 @@ namespace ConsoleApp1
                 switch (S)
                 {
                     case 1:
-                        iMin = 4;
-                        iMax = 9;
+                        iMin = 8;
+                        iMax = 13;
                         break;
                     case 2:
-                        iMin = 9;
-                        iMax = 14;
+                        iMin = 8;
+                        iMax = 13;
                         break;
                     case 3:
-                        iMin = 13;
-                        iMax = 18;
+                        iMin = 16;
+                        iMax = 21;
                         break;
                     case 4:
-                        iMin = 13;
-                        iMax = 18;
+                        iMin = 18;
+                        iMax = 23;
                         break;
                     case 5:
-                        iMin = 17;
-                        iMax = 22;
+                        iMin = 19;
+                        iMax = 24;
                         break;
                     case 6:
                         iMin = 23;
                         iMax = 28;
                         break;
                     case 7:
-                        iMin = 25;
-                        iMax = 30;
+                        iMin = 31;
+                        iMax = 36;
                         break;
                     default:
                         Console.WriteLine("S not in range of 1 - 7");
@@ -384,7 +384,7 @@ namespace ConsoleApp1
 
                     int maxTimeOnPlateau = i;
                     //solve 10 times for smoother results:
-                    for (int j = 0; j < 6; j++)
+                    for (int j = 0; j < 20; j++)
                     {
                         //initalize time and swaps
                         Swaps = 0;
