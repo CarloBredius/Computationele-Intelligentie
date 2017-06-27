@@ -262,17 +262,17 @@ namespace ConsoleApp1
             List<long> TimerS = new List<long>();
             long elapsedTime;
 
-            // tracing recursive steps
-            List<long> recursiveStepListTotal = new List<long>();
-            List<long> recursiveStepListS = new List<long>();
-            long recursiveSteps;
+            // tracing Swaps
+            List<long> SwapListTotal = new List<long>();
+            List<long> SwapListS = new List<long>();
+            long Swaps;
 
             //starting values
             int maxTimeOnPlateau = 50;
             bool performRandomWalk = false;
             int Smax = 7;
 
-            // array to keep track of average recursive steps and average time per s
+            // array to keep track of average swaps and average time per s
             long[,] DataPerS = new long[2, Smax];
 
             //get the sudoku from the console
@@ -358,8 +358,8 @@ namespace ConsoleApp1
                     //solve 10 times for smoother results:
                     for (int j = 0; j < 10; j++)
                     {
-                        //Time and recursive steps initalize
-                        recursiveSteps = 0;
+                        //initalize time and swaps
+                        Swaps = 0;
                         elapsedTime = 0;
 
                         stopWatch.Reset();
@@ -379,8 +379,8 @@ namespace ConsoleApp1
                         //finally solving a sudoku:
                         while (HeuristicValue(filledGrid, N) != 0)
                         {
-                            // increment recursive steps
-                            recursiveSteps++;
+                            // increment swaps
+                            Swaps++;
 
                             //choose a random box:
                             int box = 0;
@@ -442,22 +442,22 @@ namespace ConsoleApp1
                         TimerS.Add(elapsedTime);
                         TimerTotal.Add(elapsedTime);
 
-                        recursiveStepListS.Add(recursiveSteps);
-                        recursiveStepListTotal.Add(recursiveSteps);
+                        SwapListS.Add(Swaps);
+                        SwapListTotal.Add(Swaps);
 
-                        Console.WriteLine(j + ": time: " + elapsedTime + "\t recursive steps: " + recursiveSteps);
+                        Console.WriteLine(j + ": time: " + elapsedTime + "\t swaps: " + Swaps);
                         //printGrid(filledGrid);
                     }
                     Console.WriteLine();
                     steps.Add(heuristicsData.Count);
                 }
-                //calculate average recursive steps in S
-                long recursiveStepsInS = 0;
-                foreach (long stepsS in recursiveStepListS)
+                //calculate average swaps in S
+                long SwapsInS = 0;
+                foreach (long stepsS in SwapListS)
                 {
-                    recursiveStepsInS += stepsS;
+                    SwapsInS += stepsS;
                 }
-                long averageRecursiveSteps = (recursiveStepsInS / recursiveStepListS.Count);
+                long averageSwaps = (SwapsInS / SwapListS.Count);
 
                 //calculate average time in S
                 long timeInS = 0;
@@ -467,26 +467,26 @@ namespace ConsoleApp1
                 }
                 long averageTimeInS = (timeInS / TimerS.Count);
                 Console.WriteLine();
-                Console.WriteLine("Average recursive steps in S = " + S + " is " + averageRecursiveSteps + " steps");
+                Console.WriteLine("Average swaps in S = " + S + " is " + averageSwaps + " steps");
                 Console.WriteLine("Average time in S = " + S + " is " + averageTimeInS + " ms");
                 Console.WriteLine();
                 
                 // store average data of this S;
-                DataPerS[0, S - 1] = averageRecursiveSteps;
+                DataPerS[0, S - 1] = averageSwaps;
                 DataPerS[1, S - 1] = averageTimeInS;
 
                 //clear lists for the next S
                 TimerS.Clear();
-                recursiveStepListS.Clear();
+                SwapListS.Clear();
 
                 //research update:
                 csv3[S] = String.Join(",", steps.Select(x => x.ToString()).ToArray());
             }
-            //calculate total recursive steps
-            long totalRecursiveSteps = 0;
-            foreach (long steps in recursiveStepListTotal)
+            //calculate total swaps
+            long totalSwaps = 0;
+            foreach (long Swap in SwapListTotal)
             {
-                totalRecursiveSteps += steps;
+                totalSwaps += Swap;
             }
 
             //calculate total time
@@ -503,7 +503,7 @@ namespace ConsoleApp1
             Console.WriteLine();
             Console.WriteLine("Averages total:");
             Console.WriteLine("time: " + (totalTime / TimerTotal.Count));
-            Console.WriteLine("steps: " + (totalRecursiveSteps / recursiveStepListTotal.Count));
+            Console.WriteLine("steps: " + (totalSwaps / SwapListTotal.Count));
 
             Console.ReadLine();
         }
