@@ -222,7 +222,7 @@ namespace ConsoleApp1
             {
                 watch.Stop();
                 var elapsedMs = watch.ElapsedMilliseconds;
-                Console.WriteLine("Elapsed time: " + elapsedMs / 1000 + '.' + (elapsedMs - (elapsedMs / 1000)) + " seconds");
+                Console.WriteLine("Elapsed time: " + elapsedMs + " milliseconds");
                 Console.WriteLine("Recursive steps: " + recursiveSteps);
                 Console.ReadLine();
             }
